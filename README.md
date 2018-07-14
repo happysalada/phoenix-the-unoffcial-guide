@@ -22,7 +22,7 @@ the caveat being that the deployed nodes aren't connected in the erlang sense
 
 Cirlce CI offers a large free plan with 1500 minutes (for now at least)
 
-### CircleCI
+### [CircleCI](/CI-CD/circleci.md)
 
 ## Instrumentation
 
