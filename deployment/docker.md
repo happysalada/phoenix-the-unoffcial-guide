@@ -166,31 +166,40 @@ add a dockerfile to your project that should contain the following
 
 ```
 FROM elixir:1.6.6-alpine
+
 ARG APP_NAME=union
+ARG MIX_ENV=prod
+ARG APP_VERSION=0.0.0
 ARG PHOENIX_SUBDIR=.
-ENV MIX_ENV=prod REPLACE_OS_VARS=true TERM=xterm
+ENV MIX_ENV ${MIX_ENV}
+ENV APP_VERSION ${APP_VERSION}
+ENV REPLACE_OS_VARS true
+
 WORKDIR /opt/app
-# use yarn instead of npm
+# use yarn instead of npm to reduce from 180s to 60s
+# add git since one dependency pulls from git
 RUN apk update \
   && apk --no-cache --update add nodejs yarn git build-base \
   && mix local.rebar --force \
   && mix local.hex --force
 COPY . .
 RUN mix do deps.get, deps.compile, compile
+
 RUN cd ${PHOENIX_SUBDIR}/assets \
   && yarn install \
   && yarn deploy \
   && cd .. \
   && mix phx.digest
-RUN mix release --env=prod --verbose \
+RUN mix release --env=${MIX_ENV} --verbose \
   && mv _build/prod/rel/${APP_NAME} /opt/release \
   && mv /opt/release/bin/${APP_NAME} /opt/release/bin/start_server
-FROM alpine:3.7
+
+# minimal runtime image
+FROM alpine:3.8
 # bash is required by distillery
 RUN apk update && apk --no-cache --update add bash openssl-dev
-ENV PORT=4000 MIX_ENV=prod REPLACE_OS_VARS=true
+ENV REPLACE_OS_VARS true
 WORKDIR /opt/app
-EXPOSE ${PORT}
 COPY --from=0 /opt/release .
 CMD ["/opt/app/bin/start_server", "foreground"]
 ```
@@ -210,7 +219,7 @@ You need to push that image to a registery in order to run it on another machine
 
 To test your build use:
 
-- `docker build -t my_docker_hub_handle/my_app:1 .`
+- `docker build -t my_docker_hub_handle/my_app:1 --build-arg APP_VERSION="0.0.1" .`
 
 To push that image to Docker Hub:
 
@@ -330,7 +339,7 @@ Now that you have a first version working, let's release the next one.
 If you make changes to your code and/or add migrations for example, you simply need to
 
 - rebuild the image and push it
-  `docker build -t my_docker_hub_handle/my_app:2 .`
+  `docker build -t my_docker_hub_handle/my_app:2 --build-arg APP_VERSION="0.0.2" .`
   `docker push my_docker_hub_handle/my_app:2` (you might need to login to docker)
 
 - then on production in your folder with docker-compose.yml
@@ -341,6 +350,7 @@ If you make changes to your code and/or add migrations for example, you simply n
 - run the migration if any
   `docker-compose run web /opt/app/bin/start_server migrate`
 
-```
+### Examples files
 
-```
+- [dockerfile](/deployement/dockerfile)
+- [docker-compose.yml](/deployement/docker-compose.yml)

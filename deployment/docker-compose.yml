@@ -1,0 +1,57 @@
+version: '3.1'
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+services:
+  web:
+    image: "happysalada/union:latest"
+    ports:
+      - "80:4000"
+      - "443:443"
+    volumes:
+    - .:/app
+    env_file:
+     - ./config/docker.env
+    stdin_open: true
+    tty: true
+    links:
+      - db
+      - prometheus
+      - grafana
+
+  db:
+    image: postgres:10-alpine
+    volumes:
+      - "./volumes/postgres:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+    env_file:
+     - ./config/docker.env
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: always
+
+  grafana:
+    image: grafana/grafana:5.1.0
+    user: "104"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    links:
+      - prometheus
+    ports:
+      - "3000:3000"
+    restart: always

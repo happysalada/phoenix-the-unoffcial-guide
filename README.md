@@ -18,7 +18,7 @@ The idea behind this document is to have a standard way of doing things, so that
 
 the caveat being that the deployed nodes aren't connected in the erlang sense
 
-## CI/CD integration
+## CI-CD integration
 
 Cirlce CI offers a large free plan with 1500 minutes (for now at least)
 

@@ -1,0 +1,95 @@
+version: 2
+jobs:
+  build:
+    parallelism: 1
+    docker:
+      - image: circleci/elixir:latest-node-browsers
+        environment:
+          MIX_ENV: test
+      - image: circleci/postgres:10-alpine-ram
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: app_test
+          POSTGRES_PASSWORD:
+
+    working_directory: ~/app
+
+    steps:
+      - checkout
+
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+
+      - restore_cache:
+          keys:
+            - v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+            - v1-mix-cache-{{ .Branch }}
+            - v1-mix-cache
+      - restore_cache:
+          keys:
+            - v1-build-cache-{{ .Branch }}
+            - v1-build-cache
+      - run: mix do deps.get --force
+      - run: mix do deps.compile --force
+      - save_cache:
+          key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+          paths: "deps"
+      - save_cache:
+          key: v1-mix-cache-{{ .Branch }}
+          paths: "deps"
+      - save_cache:
+          key: v1-mix-cache
+          paths: "deps"
+      - save_cache:
+          key: v1-build-cache-{{ .Branch }}
+          paths: "_build"
+      - save_cache:
+          key: v1-build-cache
+          paths: "_build"
+
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+      - run: mix test
+
+      - store_test_results:
+          path: _build/test/junit
+
+  deploy:
+    docker:
+      - image: docker:18.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build and push Docker image
+          command: |
+            if [[ $CIRCLE_TAG ]]; then
+              TAG=$CIRCLE_TAG
+              APP_VERSION=$TAG
+            else
+              TAG="${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}-${CIRCLE_SHA1}"
+              APP_VERSION="0.0.0-${CIRCLE_BRANCH}.${CIRCLE_BUILD_NUM}+${CIRCLE_SHA1}"
+            fi
+            docker build -t happysalada/union:$TAG -t happysalada/union:latest --build-arg APP_VERSION=$APP_VERSION .
+            docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+            docker push happysalada/union:$TAG
+            docker push happysalada/union:latest
+
+      - run:
+          name: Deploy to built image to server
+          command: |
+            ssh -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $DROPLET_USER@$DROPLET_IP "cd /etc/opt/union; ./circle_deployer.sh"
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: staging
