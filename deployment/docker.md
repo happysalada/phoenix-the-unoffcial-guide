@@ -350,6 +350,10 @@ If you make changes to your code and/or add migrations for example, you simply n
 - run the migration if any
   `docker-compose run web /opt/app/bin/start_server migrate`
 
+### argon2_elixir / bcrypt_elixir
+
+if you are using these dependencies, [you'll need to modify a little your docker file](https://github.com/riverrun/comeonin/wiki/Deployment)
+
 ### Examples files
 
 - [dockerfile](/deployement/dockerfile)
