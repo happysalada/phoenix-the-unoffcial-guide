@@ -10,6 +10,7 @@ We will be
 
 ## How 
 add the following dependencies to your mix.exs
+
 ```
 {:prometheus, "~> 4.0", override: true},
 {:prometheus_ex, "~> 3.0"},
@@ -20,6 +21,7 @@ add the following dependencies to your mix.exs
 ```
 (here we are using override just to use the latest version of prometheus itself)
 in your `config/config.exs` add 
+
 ```
 # under your endpoint config
 config :my_app, UnionWeb.Endpoint,
@@ -81,6 +83,7 @@ config :my_app, MyApp.Repo, loggers: [MyApp.RepoInstrumenter, Ecto.LogEntry]
 
 `MyApp.RepoInstrumenter` , `MyApp.PhoenixInstrumenter` and `MyApp.PipelineInstrumenter` correspond to three modules that we will create next (of course you can name the modules whatever you want). I put these modules under `myapp/instrumenters/repo_instrumenter` for example, but that is also a matter of taste.
 add a `myapp/instrumenters/repo_instrumenter.ex` with the following
+
 ```
 defmodule MyApp.RepoInstrumenter do
 @moduledoc """
@@ -91,6 +94,7 @@ end
 ```
 
 add a `myapp/instrumenters/phoenix_instrumenter.ex` with the following
+
 ```
 defmodule Union.PhoenixInstrumenter do
 @moduledoc """
@@ -101,6 +105,7 @@ end
 ```
 
 add a `myapp/instrumenters/pipeline_instrumenter.ex` with the following
+
 ```
 defmodule Union.PipelineInstrumenter do
 @moduledoc """
@@ -142,6 +147,7 @@ PrometheusExporter.setup()
 prometheus will collect the metrics, but you need something to visualize them. Let's use grafana and let's set everything up with docker.
 if you haven't set up your deployment with docker, check the [docker part](/deployement/docker.md).
 once you have a docker-compose.yml file, add the following under the services list
+
 ```
 prometheus:
   image: prom/prometheus
@@ -172,6 +178,7 @@ grafana:
 ```
 
 add a prometheus/prometheus.yml file on your local with (this is just the default prometheus config file, feel free to customize)
+
 ```
 global:
 scrape_interval:     15s # By default, scrape targets every 15 seconds.
