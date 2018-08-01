@@ -24,9 +24,9 @@ in your `config/config.exs` add 
 
 ```
 # under your endpoint config
-config :my_app, UnionWeb.Endpoint,
+config :my_app, MyAppWeb.Endpoint,
   # leave your current settings here, just add the following under
-  instrumenters: [Union.PhoenixInstrumenter]
+  instrumenters: [MyApp.PhoenixInstrumenter]
 
 
 config :prometheus, MyApp.PhoenixInstrumenter,
@@ -96,7 +96,7 @@ end
 add a `myapp/instrumenters/phoenix_instrumenter.ex` with the following
 
 ```
-defmodule Union.PhoenixInstrumenter do
+defmodule MyApp.PhoenixInstrumenter do
 @moduledoc """
 Provides instrumentation for Phoenix specific metrics.
 """
@@ -107,7 +107,7 @@ end
 add a `myapp/instrumenters/pipeline_instrumenter.ex` with the following
 
 ```
-defmodule Union.PipelineInstrumenter do
+defmodule MyApp.PipelineInstrumenter do
 @moduledoc """
 Instrumentation for the entire plug pipeline.
 """
