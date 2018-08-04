@@ -28,4 +28,4 @@ Cirlce CI offers a large free plan with 1500 minutes (for now at least)
 
 Prometheus has a pretty good integration with phoenix, and is fairly easy to set up.
 
-- Prometheus
+- [Prometheus](/instrumentation/prometheus.md)
