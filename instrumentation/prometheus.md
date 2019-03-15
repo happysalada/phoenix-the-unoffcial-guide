@@ -121,7 +121,7 @@ end
 
 now in `myapp/application.ex` add
 ```
-alias MyApp{
+alias MyApp.{
   PhoenixInstrumenter,
   PipelineInstrumenter,
   PrometheusExporter,
